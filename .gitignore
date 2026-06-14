@@ -1,0 +1,25 @@
+# Personal config files (contain real IDs, tokens, credentials)
+examples/course-inventory.json
+config.yaml
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Session/temp files
+scripts/tmp/
+*.tmp
+*.swp
+*~

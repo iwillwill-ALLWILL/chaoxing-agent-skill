@@ -1,0 +1,29 @@
+# chaoxing-agent-skill 配置示例
+# 复制为 config.yaml 并填入真实值（不要提交真实值到公开仓库）
+
+# 浏览器 Relay 配置
+relay:
+  mode: chrome-relay          # chrome-relay | openclaw | playwright-cdp
+  port: 12123                 # Edge: 12123, Chrome: 12122
+  cli_path: "~/.chrome-relay/cli-edge-12123.js"
+
+# 课程清单路径
+courses:
+  inventory: "examples/course-inventory.json"
+
+# 考试/作业阈值
+thresholds:
+  pass_score: 60              # 及格线
+  high_score: 90              # 高分线（>此分数不重考）
+  retry_max: 3                # 最大重考次数
+
+# CAPTCHA（可选）
+captcha:
+  enabled: false
+  provider: capsolver         # capsolver | manual
+  api_key: "YOUR_CAPSOLVER_KEY"
+
+# 隐私
+privacy:
+  sanitize_logs: true         # 自动脱敏日志
+  placeholder_ids: true       # 使用占位符替换真实 ID

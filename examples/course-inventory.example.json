@@ -1,0 +1,16 @@
+[
+  {
+    "name": "示例课程名称",
+    "courseId": "YOUR_COURSE_ID",
+    "clazzId": "YOUR_CLASS_ID",
+    "cpi": "YOUR_CPI",
+    "homeworkListUrl": "https://mooc1.chaoxing.com/mooc2/work/list?courseId=YOUR_COURSE_ID&classId=YOUR_CLASS_ID&cpi=YOUR_CPI&ut=s&enc=..."
+  },
+  {
+    "name": "Another Course",
+    "courseId": "YOUR_COURSE_ID_2",
+    "clazzId": "YOUR_CLASS_ID_2",
+    "cpi": "YOUR_CPI",
+    "homeworkListUrl": ""
+  }
+]
