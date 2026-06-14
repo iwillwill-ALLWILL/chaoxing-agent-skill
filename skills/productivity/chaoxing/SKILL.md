@@ -404,7 +404,6 @@ See `references/captcha-solving.md` for the complete pipeline with jumpExam reve
 
 ### Quick Start
 
-**Option A: Backend pipeline (on-demand)**
 ```bash
 # Set your Capsolver key
 export CAPSOLVER_KEY="CAP-..."
@@ -412,12 +411,6 @@ export CAPSOLVER_KEY="CAP-..."
 # Run from terminal
 python scripts/captcha_pipeline.py <examnotes_tab_id>
 ```
-
-**Option B: Tampermonkey userscript (install once, permanent auto-solve)**
-1. Install Tampermonkey in Edge/Chrome
-2. Drag `scripts/cx-captcha-auto.user.js` into browser
-3. Replace `YOUR_CAPSOLVER_KEY` in the script
-4. Navigate to any exam entry page — CAPTCHA auto-solves
 
 ### Pipeline Architecture
 
@@ -530,7 +523,6 @@ See `references/reliability-pitfalls.md` for the full catalog. Key takeaways:
 ## Scripts
 
 - `scripts/captcha_pipeline.py` — **CAPTCHA auto-solve backend pipeline** (conf → image → Capsolver → verify → inject)
-- `scripts/cx-captcha-auto.user.js` — **Tampermonkey userscript** for permanent CAPTCHA auto-solve
 - `scripts/scan_homework_status.py` — Batch-scan homework status across courses
 - `scripts/verify_submission.py` — Verify submission status via same-origin fetch
 - `scripts/relay_helpers.py` — Browser relay helper functions (Chrome Relay / OpenClaw)
