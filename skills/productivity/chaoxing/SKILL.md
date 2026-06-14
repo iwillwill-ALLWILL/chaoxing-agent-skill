@@ -398,32 +398,57 @@ var hoursRemaining = timeMatch ? parseInt(timeMatch[1]) : 0;
 
 ## CAPTCHA Handling
 
-The exam-entry CAPTCHA is a slider puzzle (`captcha.chaoxing.com`). The verification chain is:
+The exam-entry CAPTCHA is a slider puzzle (`captcha.chaoxing.com`). It's the only manual-interaction step in the exam pipeline. **Fully automated** via Capsolver backend pipeline or Tampermonkey userscript.
+
+See `references/captcha-solving.md` for the complete pipeline with jumpExam reverse-engineering, verification API details, and deployment options.
+
+### Quick Start
+
+**Option A: Backend pipeline (on-demand)**
+```bash
+# Set your Capsolver key
+export CAPSOLVER_KEY="CAP-..."
+
+# Run from terminal
+python scripts/captcha_pipeline.py <examnotes_tab_id>
+```
+
+**Option B: Tampermonkey userscript (install once, permanent auto-solve)**
+1. Install Tampermonkey in Edge/Chrome
+2. Drag `scripts/cx-captcha-auto.user.js` into browser
+3. Replace `YOUR_CAPSOLVER_KEY` in the script
+4. Navigate to any exam entry page — CAPTCHA auto-solves
+
+### Pipeline Architecture
 
 ```
-canvas puzzle → user drag → onVerify → captchavalidate → captchaCallBack →
-preCheckAction → startExamSignature → checkAction (AJAX) → enc → exam page
+Browser Page                    Backend Pipeline
+─────────────                   ────────────────
+showCXCaptcha()
+  ↓
+fetch conf → captchaId ─────→  Step 1: Get server time
+fetch image → bg+sm URLs ───→  Step 2: Get image token + URLs
+                                Step 3: Download images (RAW format)
+                                Step 4: Capsolver VisionEngine → distance
+                                Step 5: CAPTCHA verify API → validate token
+                                Step 6: Return validate ←
+  ↓
+Inject validate into page
+  ↓
+jumpExam('true') → enter exam
 ```
 
-### Backend Pipeline (Capsolver)
+### jumpExam Flow
 
-The CAPTCHA can be solved via a backend pipeline using Capsolver's VisionEngine:
+```
+examCheck=0, captchaCheck=0 → skip CAPTCHA → reTestAction → exam
+     ↑
+     │ (after injecting real validate token)
+```
 
-1. Fetch CAPTCHA conf + image token
-2. Download puzzle + background images
-3. Send to Capsolver `VisionEngine slider_1` → get distance
-4. Call CAPTCHA verify API with distance → get validate token
-5. Inject validate into page (`#captchavalidate`)
+### CAPTCHA Bypass (Retakes Only)
 
-Cost: ~$0.001/solve. Requires Capsolver account with credits.
-
-### Tampermonkey Userscript (Alternative)
-
-A Tampermonkey userscript can auto-solve on exam pages using the same backend pipeline. Install once, permanent auto-solve. See `references/captcha-solve.md`.
-
-### Exam-Check Flag Bypass (Limited)
-
-Setting `examCheck=0` + `captchaCheck=0` skips the CAPTCHA UI, but the server may still reject with "无权限访问" (needs valid `enc` with validate for first entry). This is most useful for **retakes** where `reVersionReTest` AJAX may bypass CAPTCHA checks:
+Setting `examCheck=0` + `captchaCheck=0` skips the CAPTCHA UI, but the server may reject first entries with "无权限访问". For retakes specifically, `reVersionReTest` AJAX often bypasses CAPTCHA checks:
 
 ```javascript
 document.querySelector('#examCheck').value = '0';
@@ -495,6 +520,7 @@ See `references/reliability-pitfalls.md` for the full catalog. Key takeaways:
 
 ## Reference Files
 
+- `references/captcha-solving.md` — **Complete CAPTCHA slider auto-solve pipeline** (Capsolver + verify API + jumpExam reverse-engineering)
 - `references/browser-relay-patterns.md` — Browser relay integration patterns
 - `references/homework-workflow.md` — Detailed homework submission pipeline
 - `references/exam-status-audit.md` — Batch scanning and status classification
@@ -503,6 +529,8 @@ See `references/reliability-pitfalls.md` for the full catalog. Key takeaways:
 
 ## Scripts
 
+- `scripts/captcha_pipeline.py` — **CAPTCHA auto-solve backend pipeline** (conf → image → Capsolver → verify → inject)
+- `scripts/cx-captcha-auto.user.js` — **Tampermonkey userscript** for permanent CAPTCHA auto-solve
 - `scripts/scan_homework_status.py` — Batch-scan homework status across courses
 - `scripts/verify_submission.py` — Verify submission status via same-origin fetch
 - `scripts/relay_helpers.py` — Browser relay helper functions (Chrome Relay / OpenClaw)
