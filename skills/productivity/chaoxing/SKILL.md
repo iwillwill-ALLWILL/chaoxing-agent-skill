@@ -1,5 +1,5 @@
 ---
-name: chaoxing
+name: chaoxing-public
 description: Use when automating 学习通 (Chaoxing/SuperStar MOOC) platform tasks — course/task scanning, homework submission, exam status auditing, and automated workflows. Connects via browser relay (Chrome Relay or similar) to the user's logged-in browser. Covers reliability patterns: hidden-input verification, AJAX wait, DOM re-query, QID randomization, and automatic failure recovery.
 version: 2.0.0
 author: Hermes Agent
