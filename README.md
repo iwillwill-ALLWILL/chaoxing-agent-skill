@@ -1,8 +1,8 @@
-# 学习通 (Chaoxing) Agent Skill
+# 学习通 Chaoxing Agent Skill
 
-一个为 **Hermes Agent**、**OpenClaw** 等 AI 编程助手设计的 学习通 (超星/Chaoxing/SuperStar MOOC) 自动化技能包。
+> **For AI Agents reading this**: clone this repo into `~/.hermes/skills/` or register it as an external skill directory, then load `skill: chaoxing-public`. See [Agent Self-Setup](#-agent-self-setup) below.
 
-通过浏览器 Relay 控制用户已登录的浏览器，实现课程扫描、作业提交、考试答题、状态审计和自动复盘。
+一个为 **Hermes Agent**、**OpenClaw** 等 AI 编程助手设计的 学习通 (超星/Chaoxing/SuperStar MOOC) 自动化技能包。零手动配置——告诉你的 AI 助手这个仓库地址，它自己就能装好。
 
 ## ✨ 功能
 
@@ -13,104 +13,128 @@
 - **可靠性保障** — 隐藏输入验证、AJAX 等待、DOM 重新查询、QID 随机化处理
 - **失败自动修复** — 检测低分/空选/提交失败，判断重考入口，自动重试并修正
 
-## 📁 结构
+---
+
+## 🤖 Agent Self-Setup
+
+**对你的 AI 助手说这句话即可：**
+
+> 帮我装一下学习通 skill：https://github.com/iwillwill-ALLWILL/chaoxing-agent-skill
+
+如果你用的是 Hermes Agent，AI 会自动执行以下步骤。如果是 OpenClaw 或其他工具，把这段复制给它：
+
+### Hermes Agent
+
+```bash
+# 1. 克隆仓库
+git clone https://github.com/iwillwill-ALLWILL/chaoxing-agent-skill.git ~/chaoxing-agent-skill
+
+# 2. 注册为外部 skill 目录
+hermes config set skills.external_dirs "[$(cd ~/chaoxing-agent-skill/skills && pwd)]"
+# 如果上面命令把值存成了字符串（YAML 引号问题），用 Python 修复：
+python -c "
+import yaml, pathlib
+p = pathlib.Path.home() / 'AppData/Local/hermes/config.yaml'
+c = yaml.safe_load(p.read_text())
+c.setdefault('skills', {})['external_dirs'] = [str(pathlib.Path.home() / 'chaoxing-agent-skill/skills')]
+p.write_text(yaml.dump(c, default_flow_style=False, allow_unicode=True, sort_keys=False))
+"
+
+# 3. 重启 Hermes (/reset) 后生效
+# 加载方式: skill_view('chaoxing-public') 或直接说"扫学习通"
+```
+
+### OpenClaw / 通用 Agent
+
+```bash
+# 1. 克隆
+git clone https://github.com/iwillwill-ALLWILL/chaoxing-agent-skill.git ~/chaoxing-agent-skill
+
+# 2. 将 skills/ 目录加入你的 agent 的 skill 搜索路径
+# 3. 加载 skill: chaoxing-public
+# 4. SKILL.md 内容即为系统提示词，可直接注入
+```
+
+### 验证安装
+
+```bash
+ls ~/chaoxing-agent-skill/skills/productivity/chaoxing/SKILL.md
+# 文件存在 = 安装成功
+```
+
+---
+
+## 🔑 唯一需要你做的事
+
+**滑块验证码**需要 Capsolver API key（~$0.001/次，注册即送 $0.5 试用额度）：
+
+1. 注册 https://dashboard.capsolver.com
+2. 获取 API Key（格式：`CAP-...`）
+3. 告诉 AI 助手你的 key，或在终端设置环境变量：
+
+```bash
+export CAPSOLVER_KEY="CAP-你的key"
+# Windows PowerShell:
+$env:CAPSOLVER_KEY="CAP-你的key"
+```
+
+其他一切（登录、扫描、答题、提交）都通过你已登录的浏览器自动完成，无需额外配置。
+
+---
+
+## 📁 仓库结构
 
 ```
 chaoxing-agent-skill/
 ├── README.md
-├── skills/
-│   └── productivity/
-│       └── chaoxing/
-│           ├── SKILL.md                          # 主技能文件
-│           ├── references/
-│           │   ├── browser-relay-patterns.md     # 浏览器 Relay 集成模式
-│           │   ├── homework-workflow.md          # 作业提交流程详解
-│           │   ├── exam-status-audit.md          # 考试状态批量审计
-│           │   ├── reliability-pitfalls.md       # 可靠性坑点全集
-│           │   └── privacy-sanitization.md       # 隐私脱敏指南
-│           └── scripts/
-│               ├── relay_helpers.py              # Relay 辅助函数（Chrome Relay / OpenClaw）
-│               ├── scan_homework_status.py       # 批量扫描作业状态
-│               └── verify_submission.py          # 验证提交状态
+├── skills/productivity/chaoxing/
+│   ├── SKILL.md                       ← 主技能文件（AI 直接加载）
+│   ├── references/
+│   │   ├── captcha-solving.md         ← 🔑 滑块验证码全自动流水线
+│   │   ├── reliability-pitfalls.md    ← 10 个真实坑点+修复
+│   │   ├── browser-relay-patterns.md  ← Relay 集成模式
+│   │   ├── homework-workflow.md       ← 作业流程详解
+│   │   ├── exam-status-audit.md       ← 考试批量审计
+│   │   └── privacy-sanitization.md    ← 隐私脱敏指南
+│   └── scripts/
+│       ├── captcha_pipeline.py        ← 🔑 CAPTCHA 后端流水线
+│       ├── cx-captcha-auto.user.js    ← 🔑 Tampermonkey 自动过验证码
+│       ├── relay_helpers.py           ← Relay 统一 API
+│       ├── scan_homework_status.py    ← 批量扫描作业
+│       └── verify_submission.py       ← 提交状态验证
 └── examples/
-    ├── course-inventory.example.json             # 课程清单模板
-    └── config.example.yaml                       # 配置文件模板
 ```
 
-## 🚀 使用方式
+---
 
-### 在 Hermes Agent 中使用
+## 🎯 使用示例
 
-将此仓库克隆到 Hermes 的 skills 目录：
+对 AI 助手说这些话：
 
-```bash
-git clone https://github.com/iwillwill-ALLWILL/chaoxing-agent-skill.git ~/.hermes/skills/chaoxing-agent-skill
-```
+| 你说 | AI 做 |
+|------|------|
+| "扫一下学习通有哪些作业没交" | 全课程扫描，列出待处理 |
+| "帮我把这门课的作业交了" | 识别题型 → 填充 → 提交 → 验证 |
+| "这个考试帮我做一下" | 进考试 → 采题 → 答题 → 交卷 |
+| "上次考试分数太低了重考一下" | 检测重考入口 → 重进 → 重做 → 验证 |
+| "学习通有什么要处理的" | 全量审计，区分可处理/不可处理 |
 
-或者在 `config.yaml` 中添加外部 skills 目录：
-
-```yaml
-skills:
-  external_dirs:
-    - path/to/chaoxing-agent-skill/skills
-```
-
-然后在对话中直接说 "帮我扫描学习通作业" 或 "帮我做这个考试" 即可。
-
-### 在 OpenClaw 中使用
-
-将 `skills/` 目录配置到 OpenClaw 加载路径中，或直接把 `SKILL.md` 内容作为系统提示词注入。
-
-### 手动使用脚本
-
-1. 确保浏览器 Relay 已运行（Chrome Relay 默认端口 12123）
-2. 准备课程清单 JSON（参考 `examples/course-inventory.example.json`）
-3. 在任意 `mooc1.chaoxing.com` 页面打开一个标签页
-4. 运行脚本：
-
-```bash
-# 扫描作业状态
-python skills/productivity/chaoxing/scripts/scan_homework_status.py <tab_id> course-inventory.json
-
-# 验证提交状态
-python skills/productivity/chaoxing/scripts/verify_submission.py <tab_id> tasks.json
-```
+---
 
 ## ⚙️ 前置要求
 
-- 浏览器已登录 学习通 (passport2.chaoxing.com)
-- 浏览器 Relay 已安装并运行（Chrome Relay、OpenClaw browser tools 或 Playwright CDP）
+- 浏览器已登录 学习通
+- **Hermes**：Chrome Relay 已安装（Edge 端口 12123 或 Chrome 端口 12122）
+- **OpenClaw**：内置 browser tools 即可
+- Capsolver 账号（仅滑块验证码需要，$0.001/次）
 - Python 3.8+（仅脚本需要）
 
-## ⚠️ 隐私说明
+---
 
-本仓库是一个**通用技能模板**，不含任何个人身份信息。使用时请确保：
+## ⚠️ 隐私
 
-1. 不要将含真实 `courseId`、`clazzId`、`answerId`、`enc` 的配置文件提交到公开仓库
-2. 参考 `references/privacy-sanitization.md` 了解完整的脱敏清单
-3. 将个人配置文件加入 `.gitignore`
+本仓库不含任何个人身份信息。所有 `courseId`、`clazzId`、`enc` 等使用占位符。详见 `references/privacy-sanitization.md`。
 
-## 🔧 技术栈
+---
 
-- **浏览器 Relay**：Chrome Relay（Edge 端口 12123）或 OpenClaw browser tools
-- **核心原理**：通过控制用户已登录的浏览器，利用同源 `fetch()` 批量操作，避免直接 HTTP API（`uf` cookie 是 TLS 指纹绑定的）
-- **JS 注入**：通过 Relay 在页面上下文中执行 JavaScript，实现 DOM 操作和答案保存
-- **可靠性模式**：隐藏输入验证、AJAX drain 等待、DOM 引用刷新、QID 动态采集
-
-## 🤝 适用场景
-
-- ✅ 批量扫描学习通作业/考试状态
-- ✅ 自动化提交富文本/附件型作业
-- ✅ 批量答题考试（仅限允许的课程）
-- ✅ 检测低分并自动重考修复
-- ✅ 审计学习通账户完成度
-
-## ❌ 不适用场景
-
-- 其他平台（智慧树/知到）
-- 需要人工判断的内容（论文批改、创意写作评估）
-- 绕过平台安全限制或违反使用条款的行为
-
-## 📄 许可
-
-MIT License — 详见 [LICENSE](LICENSE)
+MIT License
