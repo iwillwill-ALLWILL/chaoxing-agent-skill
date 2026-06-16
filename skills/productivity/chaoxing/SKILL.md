@@ -1,7 +1,7 @@
 ---
 name: chaoxing-public
 description: Use when automating 学习通 (Chaoxing/SuperStar MOOC) platform tasks — course/task scanning, homework submission, exam status auditing, and automated workflows. Connects via browser relay (Chrome Relay or similar) to the user's logged-in browser. Covers reliability patterns: hidden-input verification, AJAX wait, DOM re-query, QID randomization, and automatic failure recovery.
-version: 2.0.0
+version: 2.1.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -493,11 +493,7 @@ See `references/reliability-pitfalls.md` for the full catalog. Key takeaways:
 | CSS-only verification | `check_answer` class set but hidden input = "0" | Verify `input[id^=answer].value` not CSS class |
 | iframe content invisible | Cross-origin blocks content access | Navigate to iframe src URL directly |
 | Expired homework | "未交" but deadline passed | Check for "已过期" text before attempting submit |
-| False status matches | Script templates contain keywords | Strip `<script>` blocks before text search |
-
----
-
-## Verification Checklist
+| False status matches | Script templates contain keywords | Strip `<script>` blocks before text search |\n\n---\n\n## Workflow 6: Document/PPT Auto-Complete\n\nFor document-type task points (PPTX, DOC, PDF) that require \"viewing\" to complete:\n\n### Method A: Scroll-to-Bottom (Single Section)\n\n```javascript\nvar inner = document.querySelector('iframe#iframe')\n    .contentDocument.querySelector('iframe.ans-attach-online');\nvar sf = inner.contentDocument.querySelectorAll('iframe')[1]; // screen/file iframe\nsf.contentDocument.body.scrollTop = sf.contentDocument.body.scrollHeight;\nsf.contentDocument.body.dispatchEvent(new Event('scroll', {bubbles: true}));\ninner.contentWindow.finishJob();\n```\n\n### Method B: job/document API (Most Reliable)\n\nNavigate the tab directly to the API URL:\n```\nhttps://mooc1.chaoxing.com/mooc-ans/job/document?jobid={jobid}\n  &knowledgeid={kid}&courseid={cid}&clazzid={clid}\n  &jtoken={jtoken}&checkMicroTopic=true&microTopicId=&courseEngineInfo=false\n```\n\nExtract `jobid`, `jtoken`, `knowledgeid` from `mArg.attachments` and `mArg.defaults` in the knowledge cards iframe.\n\n### Multi-Section Chapters (板块)\n\nChapters may have multiple sections shown as tabs (e.g., \"PPT\", \"jupyter代码\", \"nltk相关语\"). Each section has its own task points.\n\n**Detect sections**: Look for `changeDisplayContent` in the studentstudy page onclick handlers.\n\n**Navigate sections**:\n```javascript\n// Switch to section 4 of 4\nchangeDisplayContent(4, 4, '{knowledgeId}', '{courseId}', '{clazzId}', '');\n// Then extract mArg.attachments for each section and call job/document API\n```\n\n---\n\n## Workflow 7: Video Auto-Complete\n\n```javascript\nvar inner = document.querySelector('iframe#iframe')\n    .contentDocument.querySelector('iframe.ans-insertvideo-online');\nvar v = inner.contentDocument.querySelector('video');\nv.load();         // force metadata load\nv.muted = true;\nv.play();         // start playback\n// Wait ~15s for video to finish (duration typically ~60s)\n// On 'ended' event:\ninner.contentWindow.ed_complete();\n```\n\n---\n\n## Verification Checklist
 
 - [ ] Browser relay is connected and can access 学习通 pages
 - [ ] Course inventory has valid courseId/clazzId for target courses
