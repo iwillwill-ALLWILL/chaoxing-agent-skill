@@ -398,18 +398,87 @@ var hoursRemaining = timeMatch ? parseInt(timeMatch[1]) : 0;
 
 ## CAPTCHA Handling
 
-The exam-entry CAPTCHA is a slider puzzle (`captcha.chaoxing.com`). It's the only manual-interaction step in the exam pipeline. **Fully automated** via Capsolver backend pipeline or Tampermonkey userscript.
+The exam-entry CAPTCHA is a slider puzzle (`captcha.chaoxing.com`). It's the only manual-interaction step in the exam pipeline.
 
-See `references/captcha-solving.md` for the complete pipeline with jumpExam reverse-engineering, verification API details, and deployment options.
+**Two solving approaches:**
 
-### Quick Start
+1. **Fully automated** via Capsolver backend pipeline (requires API key)
+2. **Manual fallback** via Playwright CLI headed browser (user completes slider)
+
+### Quick Start — Playwright CLI (Recommended for Claude Code, Open Code, etc.)
+
+For agents **without** built-in browser control (Claude Code, Open Code, etc.), use the Playwright CLI solution:
+
+```bash
+# Install Playwright CLI (one-time)
+npm install -g @playwright/cli
+playwright install chromium
+
+# Manual mode: opens headed browser, user completes slider
+python scripts/playwright_captcha.py --manual --url "<examnotes_url>"
+
+# Auto mode: uses Capsolver API (requires key)
+export CAPSOLVER_KEY="CAP-..."
+python scripts/playwright_captcha.py --auto --url "<examnotes_url>"
+```
+
+### Quick Start — Chrome Relay (For OpenClaw, Hermes, etc.)
+
+For agents **with** built-in browser control (OpenClaw, Hermes, etc.), use the Capsolver pipeline directly:
 
 ```bash
 # Set your Capsolver key
 export CAPSOLVER_KEY="CAP-..."
 
-# Run from terminal
+# Run from terminal (requires Chrome Relay running)
 python scripts/captcha_pipeline.py <examnotes_tab_id>
+```
+
+### When to Use Which Approach
+
+| Agent Type | Browser Control | Recommended Approach |
+|------------|----------------|---------------------|
+| Claude Code | None (Playwright CLI available) | `playwright_captcha.py --manual` |
+| Open Code | None (Playwright CLI available) | `playwright_captcha.py --manual` |
+| OpenClaw | Built-in browser tools | `captcha_pipeline.py` + Chrome Relay |
+| Hermes | Built-in browser tools | `captcha_pipeline.py` + Chrome Relay |
+| Custom Agent | Varies | Choose based on available tools |
+
+### Playwright CLI Workflow
+
+The `playwright_captcha.py` script provides two modes:
+
+**Manual Mode** (`--manual`):
+1. Opens a headed Chrome browser via Playwright CLI
+2. Navigates to the exam page
+3. User completes the slider CAPTCHA manually
+4. Script detects when verification is complete
+5. Returns control to the calling agent
+
+**Auto Mode** (`--auto`):
+1. Opens a headless browser
+2. Extracts CAPTCHA ID from the page
+3. Calls `captcha_pipeline.py` to solve via Capsolver
+4. Injects the validation token
+5. Triggers exam entry
+
+### Capsolver Pipeline Architecture
+
+```
+Browser Page                    Backend Pipeline
+─────────────                   ────────────────
+showCXCaptcha()
+  ↓
+fetch conf → captchaId ─────→  Step 1: Get server time
+fetch image → bg+sm URLs ───→  Step 2: Get image token + URLs
+                                Step 3: Download images (RAW format)
+                                Step 4: Capsolver VisionEngine → distance
+                                Step 5: CAPTCHA verify API → validate token
+                                Step 6: Return validate ←
+  ↓
+Inject validate into page
+  ↓
+jumpExam('true') → enter exam
 ```
 
 ### Pipeline Architecture
@@ -452,6 +521,44 @@ jumpExam('true'); // 'true' = retake flow
 ---
 
 ## Browser Relay Integration
+
+### Playwright CLI (Universal — Claude Code, Open Code, etc.)
+
+For agents without built-in browser control, use Playwright CLI:
+
+```bash
+# Install (one-time)
+npm install -g @playwright/cli
+playwright install chromium
+
+# Open browser (headed for manual work, headless for automation)
+playwright-cli open --browser=chrome "<url>"  # headed
+playwright-cli open "<url>"                    # headless
+
+# Navigate
+playwright-cli goto "<url>"
+
+# Execute JS
+playwright-cli eval "return document.title"
+
+# Click by ref (from snapshot)
+playwright-cli click <ref>
+
+# Get page snapshot
+playwright-cli snapshot
+
+# Take screenshot
+playwright-cli screenshot
+
+# Close browser
+playwright-cli close
+```
+
+**Advantages:**
+- No external relay server needed
+- Works with any agent that can run shell commands
+- Supports both headed (manual) and headless (automated) modes
+- Built-in snapshot/eval for DOM interaction
 
 ### Chrome Relay (Edge)
 
@@ -518,7 +625,8 @@ See `references/reliability-pitfalls.md` for the full catalog. Key takeaways:
 
 ## Scripts
 
-- `scripts/captcha_pipeline.py` — **CAPTCHA auto-solve backend pipeline** (conf → image → Capsolver → verify → inject)
+- `scripts/captcha_pipeline.py` — **CAPTCHA auto-solve backend pipeline** (conf → image → Capsolver → verify → inject) — requires Chrome Relay
+- `scripts/playwright_captcha.py` — **Playwright CLI CAPTCHA solution** (manual + auto modes) — for Claude Code, Open Code, etc.
 - `scripts/scan_homework_status.py` — Batch-scan homework status across courses
 - `scripts/verify_submission.py` — Verify submission status via same-origin fetch
 - `scripts/relay_helpers.py` — Browser relay helper functions (Chrome Relay / OpenClaw)
