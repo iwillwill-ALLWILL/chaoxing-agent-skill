@@ -9,7 +9,8 @@
 - **全课程扫描** — 批量检测所有课程的作业和考试状态
 - **作业自动化** — 识别题型、填充富文本/附件、自动提交、回查确认
 - **考试工作流** — 进入考试、提取题目、批量答题、交卷、核验分数
-- **自动过滑块验证码** — Capsolver 后端流水线，零键鼠全自动
+- **自动过滑块验证码** — Capsolver 后端流水线（零键鼠全自动）或 Playwright CLI（手动完成滑块）
+- **多 Agent 兼容** — 支持 Hermes / OpenClaw / Claude Code / Open Code 等
 - **可靠性保障** — 隐藏输入验证、AJAX 等待、DOM 重新查询、QID 随机化处理
 - **失败自动修复** — 检测低分/空选/提交失败，判断重考入口，自动重试并修正
 
@@ -64,19 +65,41 @@ ls ~/chaoxing-agent-skill/skills/productivity/chaoxing/SKILL.md
 
 ---
 
-## 🔑 唯一需要你做的事
+## 🔑 验证码处理
 
-**滑块验证码**需要 Capsolver API key（~$0.001/次，注册即送 $0.5 试用额度）：
+超星滑块验证码是考试流程中唯一的交互步骤。提供两种方案：
+
+### 方案 A：Playwright CLI（免费，推荐 Claude Code / Open Code 用户）
+
+无需任何 API key，通过有头浏览器手动完成滑块：
+
+```bash
+# 一次性安装
+npm install -g @playwright/cli
+playwright install chromium
+
+# 使用时
+python scripts/playwright_captcha.py --manual --url "<考试页面URL>"
+```
+
+脚本会打开有头浏览器，你手动完成滑块验证后按回车继续。
+
+### 方案 B：Capsolver 全自动（付费）
+
+～$0.001/次，零键鼠全自动。**⚠️ Capsolver 已取消免费额度，最低一次性充值 $6：**
 
 1. 注册 https://dashboard.capsolver.com
-2. 获取 API Key（格式：`CAP-...`）
-3. 告诉 AI 助手你的 key，或在终端设置环境变量：
+2. 充值（最低 $6）
+3. 获取 API Key（格式：`CAP-...`）
+4. 在终端设置环境变量：
 
 ```bash
 export CAPSOLVER_KEY="CAP-你的key"
 # Windows PowerShell:
 $env:CAPSOLVER_KEY="CAP-你的key"
 ```
+
+> 💡 **建议**：日常用 Playwright CLI 手动模式（免费），考试时用 Capsolver 自动模式。
 
 其他一切（登录、扫描、答题、提交）都通过你已登录的浏览器自动完成，无需额外配置。
 
@@ -97,8 +120,8 @@ chaoxing-agent-skill/
 │   │   ├── exam-status-audit.md       ← 考试批量审计
 │   │   └── privacy-sanitization.md    ← 隐私脱敏指南
 │   └── scripts/
-│       ├── captcha_pipeline.py        ← 🔑 CAPTCHA 后端流水线
-│       ├── cx-captcha-auto.user.js    ← 🔑 Tampermonkey 自动过验证码
+│       ├── captcha_pipeline.py        ← 🔑 CAPTCHA 后端流水线（需 Chrome Relay）
+│       ├── playwright_captcha.py      ← 🔑 Playwright CLI 方案（通用 Agent）
 │       ├── relay_helpers.py           ← Relay 统一 API
 │       ├── scan_homework_status.py    ← 批量扫描作业
 │       └── verify_submission.py       ← 提交状态验证
@@ -126,8 +149,9 @@ chaoxing-agent-skill/
 - 浏览器已登录 学习通
 - **Hermes**：Chrome Relay 已安装（Edge 端口 12123 或 Chrome 端口 12122）
 - **OpenClaw**：内置 browser tools 即可
-- Capsolver 账号（仅滑块验证码需要，$0.001/次）
+- **Claude Code / Open Code**：安装 Playwright CLI（`npm install -g @playwright/cli && playwright install chromium`）
 - Python 3.8+（仅脚本需要）
+- Capsolver 账号（可选，仅全自动滑块验证码需要，最低充值 $6）
 
 ---
 

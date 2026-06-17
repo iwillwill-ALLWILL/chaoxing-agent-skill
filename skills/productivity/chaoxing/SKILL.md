@@ -402,8 +402,8 @@ The exam-entry CAPTCHA is a slider puzzle (`captcha.chaoxing.com`). It's the onl
 
 **Two solving approaches:**
 
-1. **Fully automated** via Capsolver backend pipeline (requires API key)
-2. **Manual fallback** via Playwright CLI headed browser (user completes slider)
+1. **Fully automated** via Capsolver backend pipeline (requires API key, **minimum $6 top-up, no free tier**)
+2. **Manual fallback** via Playwright CLI headed browser (user completes slider, **free**)
 
 ### Quick Start — Playwright CLI (Recommended for Claude Code, Open Code, etc.)
 
@@ -425,6 +425,8 @@ python scripts/playwright_captcha.py --auto --url "<examnotes_url>"
 ### Quick Start — Chrome Relay (For OpenClaw, Hermes, etc.)
 
 For agents **with** built-in browser control (OpenClaw, Hermes, etc.), use the Capsolver pipeline directly:
+
+> ⚠️ Capsolver requires minimum $6 top-up (no free tier). For a free option, use Playwright CLI above.
 
 ```bash
 # Set your Capsolver key

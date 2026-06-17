@@ -5,6 +5,11 @@
 通过 Capsolver VisionEngine 计算滑块距离，调用 超星验证API，
 获取 validate token 并注入浏览器页面，实现零键鼠全自动绕过。
 
+⚠️ Capsolver 计费提示：
+  - 每次解决 ~$0.001
+  - 已取消免费额度，最低充值 $6
+  - 免费替代：playwright_captcha.py --manual（手动完成滑块）
+
 用法:
     python captcha_pipeline.py <tab_id>
 

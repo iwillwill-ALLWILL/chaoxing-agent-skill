@@ -288,4 +288,6 @@ After inject + jumpExam('true'):
 
 - Capsolver VisionEngine slider_1: ~$0.001 per solve
 - A typical exam session needs 1-2 CAPTCHA solves (entry + retake)
-- $5 balance is sufficient for dozens of exams
+- **⚠️ Capsolver no longer offers free credits — minimum top-up is $6**
+- $6 balance is sufficient for hundreds of exams
+- **Free alternative**: Use `scripts/playwright_captcha.py --manual` for manual slider completion via Playwright CLI

@@ -3,8 +3,8 @@
 
 # 浏览器 Relay 配置
 relay:
-  mode: chrome-relay          # chrome-relay | openclaw | playwright-cdp
-  port: 12123                 # Edge: 12123, Chrome: 12122
+  mode: chrome-relay          # chrome-relay | openclaw | playwright-cli
+  port: 12123                 # Edge: 12123, Chrome: 12122 (chrome-relay only)
   cli_path: "~/.chrome-relay/cli-edge-12123.js"
 
 # 课程清单路径
